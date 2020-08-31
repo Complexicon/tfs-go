@@ -58,16 +58,19 @@ func logReq(h http.Handler) http.Handler {
 				if err == nil {
 					pair := strings.SplitN(string(b), ":", 2)
 					if len(pair) == 2 {
-						if pair[0] != username || pair[1] != password {
-							http.Error(w, "Not authorized", 401)
+						if pair[0] == username || pair[1] == password {
+							h.ServeHTTP(w, r)
 							return
 						}
 					}
 				}
 			}
+			http.Error(w, "Not authorized", 401)
+			return
+		} else {
+			h.ServeHTTP(w, r)
 		}
 
-		h.ServeHTTP(w, r)
 	})
 }
 

@@ -58,7 +58,7 @@ func logReq(h http.Handler) http.Handler {
 				if err == nil {
 					pair := strings.SplitN(string(b), ":", 2)
 					if len(pair) == 2 {
-						if pair[0] == username || pair[1] == password {
+						if pair[0] == username && pair[1] == password {
 							h.ServeHTTP(w, r)
 							return
 						}

@@ -48,16 +48,14 @@ var password = "dummy"
 
 func logReq(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		log.Printf("[%v] %v", r.Method, r.URL.String())
 
 		if auth {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-			if len(s) == 2 {
-				b, err := base64.StdEncoding.DecodeString(s[1])
-				if err == nil {
-					pair := strings.SplitN(string(b), ":", 2)
-					if len(pair) == 2 {
+			if s := r.Header.Get("Authorization"); s != "" {
+				if b, err := base64.StdEncoding.DecodeString(s[6:]); err == nil {
+					if pair := strings.Split(string(b), ":"); len(pair) == 2 {
 						if pair[0] == username && pair[1] == password {
 							h.ServeHTTP(w, r)
 							return
@@ -65,17 +63,18 @@ func logReq(h http.Handler) http.Handler {
 					}
 				}
 			}
+
 			http.Error(w, "Not authorized", 401)
 			return
-		} else {
-			h.ServeHTTP(w, r)
 		}
+
+		h.ServeHTTP(w, r)
 
 	})
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(10 << 20)
+	r.ParseMultipartForm(1 << 30)
 
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
@@ -98,8 +97,21 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// return that we have successfully uploaded our file!
+	size := float32(handler.Size)
+	suffix := "B"
+
+	if size > 1000 {
+		size /= 1000
+		suffix = "K"
+	}
+
+	if size > 1000 {
+		size /= 1000
+		suffix = "M"
+	}
+
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
-	log.Printf("[>>] Done! File Size: %+vK\n", (float32(handler.Size) / 1000))
+	log.Printf("[>>] Done! File Size: %+v%v\n", size, suffix)
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {

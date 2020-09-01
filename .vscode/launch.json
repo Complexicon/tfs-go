@@ -11,7 +11,11 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "env": {},
-            "args": []
+            "args": [
+                "-auth",
+                "-pass",
+                "1234"
+            ]
         }
     ]
 }

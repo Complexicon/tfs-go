@@ -53,6 +53,7 @@ func logReq(h http.Handler) http.Handler {
 
 		if auth {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			w.Header().Set("Cache-Control", "no-cache")
 			if s := r.Header.Get("Authorization"); s != "" {
 				if b, err := base64.StdEncoding.DecodeString(s[6:]); err == nil {
 					if pair := strings.Split(string(b), ":"); len(pair) == 2 {
